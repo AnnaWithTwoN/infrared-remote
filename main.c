@@ -30,7 +30,7 @@ uint16_t  ir_timings[MAX_IR_EDGES];
 char ir_name[MAX_NAME_LEN];
 
 /// currently working index (rec/replay/del)
-uint8_t current_index = 0; //currently selected index
+int8_t current_index = -1; //currently selected index
 uint8_t ret_uint = 0; //general return value variable, type uint8
 
 //TBD: add additional global variables if necessary.
@@ -44,7 +44,7 @@ int main(void)
 	
 	///TBD: add additional init stuff
 	
-	
+
 	while(1)
 	{
 		//call UI part & wait for a selection/command
