@@ -77,6 +77,17 @@
 #define OK 0
 #define ERROR 1
 
+#define POS_CURSOR_INIT 0
+#define POS_CURSOR_REC 1
+#define POS_CURSOR_REPL 7
+#define POS_CURSOR_DEL 13
+
+#define BUTTON_RIGHT (!(PIND & (1<<PD4)))
+#define BUTTON_LEFT (!(PIND & (1<<PD5)))
+#define BUTTON_DOWN (!(PIND & (1<<PD3)))
+#define BUTTON_UP (!(PIND & (1<<PD2)))
+
+
 // Functions to control the display
 void lcdSpiInit();
 void lcdInit();
