@@ -87,5 +87,17 @@ void uart_transmit(uint8_t c);
  */
 void uart_sendstring(char * str );
 
+/**
+ * @brief TODO: add description
+ * 
+ * @param input 
+ * @return char* 
+ */
+char* i16tos(uint16_t input);
+
+void print_command(uint16_t* ir);
+
+int8_t str_equal(uint8_t* str1, uint8_t* str2);
+
 
 #endif /* _COMMON_H_ */

@@ -63,3 +63,41 @@ void uart_sendstring(char * str )
 		str++;
 	}
 }
+
+char* i16tos(uint16_t input) {
+    // max number of numbers in uint16 is 5
+    int8_t i = 5;
+    static char str[6];
+
+    str[i] = 0;
+    while(i-- >= 0){
+        str[i] = input % 10 + '0';
+        input /= 10;
+        if(input == 0){
+            // convertion is finished, return
+            break;
+        }
+    }
+    // return string starting at the first non-zero number
+    return &str[i];
+}
+
+void print_command(uint16_t* ir) {
+    uart_sendstring("Loaded command: ");
+	while(*ir){
+		uart_sendstring(i16tos(*ir));
+		ir++;
+		uart_sendstring(", ");
+	}
+	uart_sendstring("\r\n");
+}
+
+int8_t str_equal(uint8_t* str1, uint8_t* str2) {
+    while(*str1 || *str2){
+        if(*str1 != *str2){
+            return 0; // false
+        }
+        str1++; str2++;
+    }
+    return 1; // true
+}
