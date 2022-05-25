@@ -8,16 +8,10 @@
 
 #ifndef _EEPROM_H_
 #define _EEPROM_H_
-#define MEMORY_SIZE 32768 // 32KB // (32 * 1024)
 
-#define MAX_IR_EDGES 250
-#define MAX_NAME_LEN 10
-#define MAX_COMMANDS (MEMORY_SIZE / (MAX_IR_EDGES * 2 + MAX_NAME_LEN))
+uint8_t eeprom_get_next_command(int8_t* current_index, char* name);
+uint8_t eeprom_get_prev_command(int8_t* current_index, char* name);
 
-#define MAGIC_NUMBER 123
-#define MAGIC_NUMBER_ADDRESS (MEMORY_SIZE - 8)
-
-uint16_t ir_timings[MAX_IR_EDGES];
 
 /** @brief Init EEPROM
  * 
@@ -38,10 +32,7 @@ uint8_t eeprom_init ();
  * 
  * @return number of commands (count)
  */
-uint16_t eeprom_get_command_count ();  
-
-int8_t eeprom_get_prev_command(int8_t* current_index, char* name);
-int8_t eeprom_get_next_command(int8_t* current_index, char* name);
+uint8_t eeprom_get_command_count ();  
 
 /** @brief Get index for a name
  * 
@@ -63,7 +54,7 @@ int8_t eeprom_get_command_index (char * name);
  * @param index Index of the command, of which the name should be returned
  * @return Length of the name string, 0 when no valid command at the index.
  */
-uint8_t eeprom_get_command_name (int8_t index, char * name);  
+uint8_t eeprom_get_command_name (uint8_t index, char * name);  
 
 /** @brief Store a command on a given index
  * 
@@ -88,7 +79,7 @@ uint8_t eeprom_store_command (int8_t index, char * name, uint16_t * ir);
  * @return 0 when successful, error code otherwise
  * TBD: implement & document error codes
  */
-uint8_t eeprom_load_command (int8_t index, uint16_t * ir);
+uint8_t eeprom_load_command (uint8_t index, uint16_t * ir);  
 
 
 /** @brief Delete IR command on given index
@@ -99,7 +90,7 @@ uint8_t eeprom_load_command (int8_t index, uint16_t * ir);
  * @return 0 when successful, error code otherwise
  * TBD: implement & document error codes
  */
-uint8_t eeprom_delete_command (int8_t index);  
+uint8_t eeprom_delete_command (uint8_t index);  
 
 
 #endif /* _EEPROM_H_ */

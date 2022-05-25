@@ -30,10 +30,15 @@ uint16_t  ir_timings[MAX_IR_EDGES];
 char ir_name[MAX_NAME_LEN];
 
 /// currently working index (rec/replay/del)
-int8_t current_index = -1; //currently selected index
+uint8_t current_index = 0; //currently selected index
 uint8_t ret_uint = 0; //general return value variable, type uint8
 
 //TBD: add additional global variables if necessary.
+uint8_t menu = 0;
+int8_t cursor = 1;
+uint8_t line = 1;
+
+
 
 int main(void)
 {
@@ -44,10 +49,19 @@ int main(void)
 	
 	///TBD: add additional init stuff
 	
-
+	menu_start();
+	DDRD &= ~((1<<PD2)|(1<<PD3)|(1<<PD4)|(1<<PD5));
+	PORTD |= (1<<PD2)|(1<<PD3)|(1<<PD4)|(1<<PD5);
+	
 	while(1)
 	{
+			menu_selection_start();
+			if(BUTTON_DOWN && (line == 1)){
+				line = 2;		
+				menu = menu_sub_selection(cursor);
+			}	
 		//call UI part & wait for a selection/command
+		
 		switch(ui_get_selection(&current_index, ir_name))
 		{
 			//TBD: please use #defines here & define them in common.h!!!
@@ -72,7 +86,7 @@ int main(void)
 				///at this point, ui_get_selection provided a valid current index
 				///so we can call now EEPROM load to have valid ir timings
 				
-				ret_uint = eeprom_load_command(current_index, ir_timings);
+				
 				
 				//TBD: implement error handling here!
 			

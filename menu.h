@@ -16,7 +16,6 @@
  * This function initializes the SPI interface
  * and displays the welcome message.
  */
-void ui_init();
 
 /** @brief Main UI/menu/LCD function
  * 
@@ -34,5 +33,11 @@ void ui_init();
  * TBD: clearify the command return by using macros
  */
 uint8_t ui_get_selection(uint8_t *index, char *ir_name);
+void ui_init();
+void add_name();
+void menu_start();
+void menu_selection_start();
+uint8_t load_name();
+uint8_t menu_sub_selection(uint8_t cursor_pos);
 
 #endif /* _MENU_H_ */
