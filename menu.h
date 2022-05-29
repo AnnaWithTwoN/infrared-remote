@@ -35,4 +35,10 @@ void ui_init();
  */
 uint8_t ui_get_selection(uint8_t *index, char *ir_name);
 
+void add_name();
+void menu_start();
+void menu_selection_start();
+uint8_t load_name();
+uint8_t menu_sub_selection(uint8_t cursor_pos);
+
 #endif /* _MENU_H_ */
