@@ -54,7 +54,7 @@ uint8_t eeprom_init()
 		}
 	}
 
-	/*
+	
 	// see list of existsing commands - for debugging
 	uint8_t slot;
 	char name2[10];
@@ -66,7 +66,7 @@ uint8_t eeprom_init()
 			uart_sendstring(name2);
 			uart_sendstring("\r\n");
 		}
-	}*/
+	}
 
 	/*
 	// see initial memory - for debugging
@@ -92,8 +92,7 @@ int8_t eeprom_get_prev_command(int8_t* current_index, char* name)
 	// if current index is -1 ("start from the beggining"), set it to 1
 	*current_index = *current_index == -1 ? 1 : *current_index;
 
-	// TODO: todo
-	for(int8_t i = (*current_index - 1) % MAX_COMMANDS; 
+	for(int8_t i = (*current_index - 1 + MAX_COMMANDS) % MAX_COMMANDS; 
 		i < MAX_COMMANDS + *current_index; 
 		i = (i - 1 + MAX_COMMANDS) % MAX_COMMANDS){
 		eeprom_read_bytes(510 * i, &slot, 1);
@@ -169,10 +168,10 @@ int8_t eeprom_get_command_index(char * name)
 	uart_sendstring(name);
 	uart_sendstring(" ...\r\n");
 
-	uint8_t command_name[10];
+	char command_name[10];
 
 	for(uint8_t i = 0; i < MAX_COMMANDS; i++){
-		eeprom_read_bytes(510 * i, command_name, 10);
+		eeprom_read_bytes(510 * i, (uint8_t*)command_name, 10);
 		if(str_equal(name, command_name)){
 			return i;
 		}
@@ -272,7 +271,9 @@ uint8_t eeprom_store_command(int8_t index, char * name, uint16_t * ir)
  */
 uint8_t eeprom_load_command(int8_t index, uint16_t * ir)
 {
-	uart_sendstring("Loading command...\r\n");
+	uart_sendstring("Loading command at index ");
+	uart_sendstring(i16tos(index));
+	uart_sendstring("...\r\n");
 
 	uint16_t start_address_command = index * 510 + 10;
 	uint8_t buffer[500];
@@ -281,12 +282,12 @@ uint8_t eeprom_load_command(int8_t index, uint16_t * ir)
 	for(uint8_t i = 0; i < 250; i++){
 		ir[i] = buffer[i * 2];
 		ir[i] |= (buffer[i * 2 + 1] << 8);
-		/*uart_sendstring(i16tos(buffer[i * 2]));
+		uart_sendstring(i16tos(buffer[i * 2]));
 		uart_sendstring(", ");
 		uart_sendstring(i16tos(buffer[i * 2 + 1]));
 		uart_sendstring(" -> ");
 		uart_sendstring(i16tos(ir[i]));
-		uart_sendstring("; ");*/
+		uart_sendstring("; ");
 	}
 	uart_sendstring("\r\n");
 

@@ -33,12 +33,11 @@ void ui_init();
  * 
  * TBD: clearify the command return by using macros
  */
-uint8_t ui_get_selection(uint8_t *index, char *ir_name);
+int8_t ui_get_selection();
 
-void add_name();
+int8_t add_name(char* ir_name);
 void menu_start();
-void menu_selection_start();
-uint8_t load_name();
-uint8_t menu_sub_selection(uint8_t cursor_pos);
+uint8_t load_name(int8_t* index);
+int8_t menu_sub_selection(uint8_t cursor_pos);
 
 #endif /* _MENU_H_ */

@@ -92,7 +92,7 @@ void print_command(uint16_t* ir) {
 	uart_sendstring("\r\n");
 }
 
-int8_t str_equal(uint8_t* str1, uint8_t* str2) {
+int8_t str_equal(char* str1, char* str2) {
     while(*str1 || *str2){
         if(*str1 != *str2){
             return 0; // false
