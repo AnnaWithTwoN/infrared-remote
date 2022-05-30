@@ -31,6 +31,24 @@
 #include "ir.h"
 #include "menu.h"
 
+// Display part
+#define POS_CURSOR_INIT 0
+#define POS_CURSOR_REC 1
+#define POS_CURSOR_REPL 7
+#define POS_CURSOR_DEL 13
+
+#define BUTTONS_MASK ((1<<PD2)|(1<<PD3)|(1<<PD4)|(1<<PD5))
+#define SOME_BUTTON_PRESSED ((PIND & BUTTONS_MASK) != BUTTONS_MASK)
+
+#define BUTTON_RIGHT (!(PIND & (1<<PD4)))
+#define BUTTON_LEFT (!(PIND & (1<<PD5)))
+#define BUTTON_DOWN (!(PIND & (1<<PD3)))
+#define BUTTON_UP (!(PIND & (1<<PD2)))
+
+#define COMMAND_RECORD 0
+#define COMMAND_REPLAY 1
+#define COMMAND_DELETE 2
+
 /** @brief Length of IR timings array
  * @warning Size in bytes is double (we allocate this number of uint16_t)
  */
@@ -62,7 +80,14 @@ extern uint16_t  ir_timings[MAX_IR_EDGES];
  */
 extern char ir_name[MAX_NAME_LEN];
 
-
+extern uint8_t menu;
+extern int8_t cursor;
+extern uint8_t line;
+extern char *currentwrite;
+extern char *REC;
+extern char *REPL;
+extern char *DEL;
+extern int8_t digit;
 
 ////////////////////////////////////////////////////////////////////////
 /////////// UART functions (from lecture)
@@ -97,7 +122,7 @@ char* i16tos(uint16_t input);
 
 void print_command(uint16_t* ir);
 
-int8_t str_equal(uint8_t* str1, uint8_t* str2);
+int8_t str_equal(char* str1, char* str2);
 
 
 #endif /* _COMMON_H_ */
