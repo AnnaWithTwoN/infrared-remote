@@ -9,6 +9,7 @@
 #include <util/delay.h>
 #include <avr/interrupt.h>
 #include <util/twi.h>
+//#include "common.h"
 #include "i2c.h"
 
 void twi_init() {
@@ -70,6 +71,48 @@ uint8_t eeprom_write_byte(uint16_t addr, uint8_t value) {
 	twi_write(value);
 
 	twi_stop();
+	return(0); // success! return no error code
+
+	// TBD: create Start Condition
+	// TBD: (optional) check status (0x08: ok)
+	// TBD: write EEPROM chip I2C address (MTM: R/W bit = 0)
+	// TBD: (optional) check status (0x18: ok)
+	// TBD: write memory address (addr high byte)
+	// TBD: (optional) check status (0x28: ok)
+	// TBD: write memory address (addr low byte)
+	// TBD: (optional) check status (0x28: ok)
+	// TBD: write data byte (value)
+	// TBD: (optional) check status (0x28: ok)
+	// TBD: create Stop Condition
+}
+
+uint8_t eeprom_write_page(uint16_t addr, uint8_t* arr) {
+	twi_start();
+	twi_write(CONTROL_BYTE_WRITE);
+	
+	// write address high byte
+	twi_write(addr >> 8);
+	// write address low byte
+	twi_write(addr & 0xff);
+
+	// write data
+	uint8_t counter = PAGE_SIZE;
+	// write bytes until page is over
+	while(counter--){
+		twi_write(*arr);
+		//uart_sendstring(i16tos(*arr));
+		//uart_sendstring(",\r\n");
+		/*if(twi_write(*arr) != 0x28){
+			uart_sendstring("Write of number ");
+			uart_sendstring(i16tos(*arr));
+			uart_sendstring(" failed\r\n");
+		}*/
+		arr++;
+	}
+
+	//uart_sendstring("Trying to create stop condition\r\n");
+	twi_stop();
+	//uart_sendstring("Created stop condition\r\n");
 	return(0); // success! return no error code
 
 	// TBD: create Start Condition
