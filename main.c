@@ -25,10 +25,6 @@
 
 #include "common.h"
 
-/** global variable instances, see common.h for documentation */
-uint16_t  ir_timings[MAX_IR_EDGES];
-char ir_name[MAX_NAME_LEN];
-
 /// currently working index (rec/replay/del)
 int8_t current_index = 0; //currently selected index
 uint8_t ret_uint = 0; //general return value variable, type uint8
@@ -44,9 +40,13 @@ int main(void)
 	uart_init(115200);
 	eeprom_init(); //TODO: implement error code handling here!
 	ui_init();
+	sei();
 	
 	DDRD &= ~((1<<PD2)|(1<<PD3)|(1<<PD4)|(1<<PD5));
 	PORTD |= (1<<PD2)|(1<<PD3)|(1<<PD4)|(1<<PD5);
+
+	uint16_t  ir_timings[MAX_IR_EDGES];
+	char ir_name[MAX_NAME_LEN];
 	
 	while(1)
 	{
@@ -61,7 +61,14 @@ int main(void)
 				}
 
 				// start ir recording
+				clear_array(ir_timings, MAX_IR_EDGES);
 				ret_uint = ir_record_command(ir_timings);
+				if(ret_uint != IR_RECORDING_SUCCESSFUL) {
+					uart_sendstring("IR recording failed. Error code: ");
+					uart_sendstring(i16tos(ret_uint));
+					uart_sendstring("\r\n");
+					break;
+				}
 				
 				//TBD: implement error handling here!
 			
@@ -85,7 +92,7 @@ int main(void)
 				//TBD: implement error handling here!
 			
 				// if the load was successful, we have everything to replay the command.
-				//ret_uint = ir_play_command(ir_timings);
+				ret_uint = ir_play_command(ir_timings);
 				
 				
 				//TBD: implement error handling here!

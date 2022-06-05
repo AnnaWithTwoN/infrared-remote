@@ -101,3 +101,9 @@ int8_t str_equal(char* str1, char* str2) {
     }
     return 1; // true
 }
+
+void clear_array(uint16_t* arr, uint8_t length) {
+    while(length--){
+        *arr = 0;
+    }
+}
