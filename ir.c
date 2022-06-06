@@ -10,57 +10,12 @@
 #include "avr/io.h"
 #include "ir.h"
 #include <stdio.h>
-#include "timer.h"
+volatile uint16_t current_timestamp=0;
+volatile uint16_t recording=0;
+volatile uint8_t replaying=0;
+volatile uint8_t toggle_flag=0;
+volatile uint8_t wait_for_start=0;
 
-/**
- * @brief ISR called when edge changes on PD6
- * 
- */
-ISR(TIMER1_CAPT_vect)
-{
-    if(recording)
-    {
-        current_timestamp = ICR1;
-        TCCR1B ^= _BV(ICES1);
-        TCNT1 = 0;
-    }
-}
-
-/**
- * @brief Timer used for triggering the carrier frequency during replay
- * 
- */
-ISR(TIMER1_COMPA_vect)
-{
-    if(replaying)
-    {
-        IR_LED_DDR ^= _BV(IR_LED_PIN);
-        toggle_flag = 1;
-    }
-}
-
-/**
- * @brief ISR called when no more edges has been detected during recording
- * 
- */
-ISR(TIMER1_OVF_vect){
-    recording = 0;
-    uart_sendstring("OVERFLOW detected. Stopping recording.\n");
-}
-
-/**
- * @brief Watchdog interrupt used for no input during IR recording.
- * 
- */
-ISR(WDT_vect)
-{
-    if(recording)
-    {
-        uart_sendstring("TIMEOUT WHILE RECORDING\n");
-        wait_for_start = 0;
-        recording = 0;
-    }
-}
 
 /** @brief Record an IR command
  * 
@@ -82,14 +37,14 @@ uint8_t ir_record_command(uint16_t * ir)
 	uint16_t* ip;
 	ip = ir;
 	current_timestamp = 0;
-	recording = 1;
+	wait_for_start = 1;
 	enable_watchdog();
 	do{}
 	while(wait_for_start && bit_is_set(PINB,0));
 	disable_watchdog();
 	
 	enable_input_capture();
-	
+	recording = 1;
 	while(recording)
 	{
 		uart_sendstring("Inside IR recording\r\n");
@@ -144,7 +99,7 @@ uint8_t ir_record_command(uint16_t * ir)
  */
 uint8_t ir_play_command(uint16_t * ir)
 {
-	uint8_t debug = 1;
+	uint8_t debug = 0;
 	IR_LED_DDR |= _BV(IR_LED_PIN);//set OC2A as output
 	char debug_string[100];
 	uint16_t* ip;
@@ -180,4 +135,141 @@ uint8_t ir_play_command(uint16_t * ir)
 	
 	uart_sendstring("Replaying finished\n");
 	return 0;
+}
+
+void enable_input_capture(void){
+	TCNT1 = 0;
+	TCCR1B |= _BV(CS12) | _BV(ICNC1);
+	TCCR1B &= ~_BV(ICES1);
+	TIMSK1 |= _BV(TOIE1) | _BV(ICIE1);
+     
+}
+
+/**
+ * @brief Disables the interrupts that are needed for the input capture.
+ *
+ */
+void disable_input_capture()
+{
+     TIMSK1 &= ~(_BV(TOIE1) | _BV(ICIE1));
+}
+
+
+/**
+ * @brief Sets up the timer for replaying a command.
+ *
+ */
+void enable_carrier_freq(){
+
+     IR_LED_DDR |= _BV(IR_LED_PIN);
+     //init timer0 for PWM
+	TCCR2A |= _BV(COM2A0) | _BV(WGM21);	//ctc
+	TCCR2B |= _BV(CS21); //8 prescale
+	OCR2A =  25; //50 DTC was 25
+}
+
+
+/**
+ * @brief Disables the timer needed for replaying a command.
+ *
+ */
+void disable_carrier_freq(){
+     TCCR2B &= ~(_BV(CS20) | _BV(CS21) | _BV(CS22));
+     IR_LED_DDR &= ~_BV(IR_LED_PIN);
+}
+
+/**
+ * @brief Enables the timer required for triggering edge changes.
+ *
+ */
+void enable_replay_timer()
+{
+     TCCR1A = 0;
+     TCCR1B = _BV(WGM12) | _BV(CS12);
+     TIMSK1 |= _BV(OCIE1A);
+}
+
+/**
+ * @brief Disables the timer required for triggering edge changes.
+ *
+ */
+void disable_replay_timer()
+{
+     TCCR1B &= ~0x07;
+}
+
+/**
+ * @brief Enables watchdog timer for 8 sec timeout in interrupt mode.
+ *
+ */
+void enable_watchdog()
+{
+     WDTCSR |= _BV(WDCE) | _BV(WDE);
+     WDTCSR = 0x71; //8 sec timeout
+
+}
+
+/**
+ * @brief Disables watchdog timer.
+ *
+ */
+void disable_watchdog()
+{
+
+     WDTCSR |= _BV(WDCE) | _BV(WDE);
+     WDTCSR = 0x00;
+}
+
+/**
+ * @brief ISR called when edge changes on PD6
+ * 
+ */
+ISR(TIMER1_CAPT_vect)
+{
+    if(recording)
+    {
+        current_timestamp = ICR1;
+        TCCR1B ^= _BV(ICES1);
+        TCNT1 = 0;
+    }
+}
+
+/**
+ * @brief Timer used for triggering the carrier frequency during replay
+ * 
+ */
+ISR(TIMER1_COMPA_vect)
+{
+    if(replaying)
+    {
+        IR_LED_DDR ^= _BV(IR_LED_PIN);
+        toggle_flag = 1;
+    }
+}
+
+/**
+ * @brief ISR called when no edges has been detected during recording for approx. 1 sec
+ * 
+ */
+ISR(TIMER1_OVF_vect){
+	if(recording)
+	{
+		recording = 0;
+    	uart_sendstring("OVERFLOW detected. Stopping recording.\n");
+	}
+    
+}
+
+/**
+ * @brief Watchdog interrupt used for no input during IR recording.
+ * 
+ */
+ISR(WDT_vect)
+{
+    if(recording)
+    {
+        uart_sendstring("TIMEOUT WHILE RECORDING\n");
+        wait_for_start = 0;
+        recording = 0;
+    }
 }
