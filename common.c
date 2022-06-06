@@ -23,6 +23,7 @@
 
 
 #include "common.h"
+#include "string.h"
 
 
 
@@ -103,8 +104,5 @@ int8_t str_equal(char* str1, char* str2) {
 }
 
 void clear_array(uint16_t* arr, uint8_t length) {
-    while(length--){
-        *arr = 0;
-        arr++;
-    }
+    memset(arr, 0, length);
 }
