@@ -17,7 +17,7 @@
 #define MAGIC_NUMBER 123
 #define MAGIC_NUMBER_ADDRESS (MEMORY_SIZE - 8)
 
-uint16_t ir_timings[MAX_IR_EDGES];
+#include "common.h"
 
 /** @brief Init EEPROM
  * 
