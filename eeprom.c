@@ -189,7 +189,7 @@ int8_t eeprom_get_command_index(char * name)
  * @param index Index of the command, of which the name should be returned
  * @return Length of the name string, 0 when no valid command at the index.
  */
-uint8_t eeprom_get_command_name(int8_t index, char * name)
+uint8_t eeprom_get_command_name(uint8_t index, char * name)
 {
 	uart_sendstring("Getting command name for index ");
 	uart_sendstring(i16tos(index));
@@ -246,13 +246,16 @@ uint8_t eeprom_store_command(int8_t index, char * name, uint16_t * ir)
 		name++;
 	}
 	eeprom_write_byte(start_address_name++, 0);
-
-	while(*ir) {
+	uint16_t cntr = 0;
+	while(*ir && cntr<= MAX_IR_EDGES) {
+		uart_sendstring("asd");
 		eeprom_write_byte(start_address_command++, *ir & 0xff);
 		_delay_ms(10);
 		eeprom_write_byte(start_address_command++, *ir >> 8);
 		_delay_ms(10);
 		ir++;
+		cntr++;
+		
 	}
 
 	uart_sendstring("Command stored\r\n");
@@ -278,7 +281,7 @@ uint8_t eeprom_load_command(int8_t index, uint16_t * ir)
 	uint16_t start_address_command = index * 510 + 10;
 	uint8_t buffer[500];
 	eeprom_read_bytes(start_address_command, buffer, 500);
-
+	/*
 	for(uint8_t i = 0; i < 250; i++){
 		ir[i] = buffer[i * 2];
 		ir[i] |= (buffer[i * 2 + 1] << 8);
@@ -289,7 +292,7 @@ uint8_t eeprom_load_command(int8_t index, uint16_t * ir)
 		uart_sendstring(i16tos(ir[i]));
 		uart_sendstring("; ");
 	}
-	uart_sendstring("\r\n");
+	uart_sendstring("\r\n");*/
 
 	uart_sendstring("Command loaded\r\n");
 	

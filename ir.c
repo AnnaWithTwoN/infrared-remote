@@ -9,7 +9,8 @@
 #include "common.h"
 #include "avr/io.h"
 #include "ir.h"
-#include <stdio.h>
+#include "stdio.h"
+#include "inttypes.h"
 volatile uint16_t current_timestamp=0;
 volatile uint16_t recording=0;
 volatile uint8_t replaying=0;
@@ -38,13 +39,14 @@ uint8_t ir_record_command(uint16_t * ir)
 	ip = ir;
 	current_timestamp = 0;
 	wait_for_start = 1;
+	recording = 1;
 	enable_watchdog();
 	do{}
 	while(wait_for_start && bit_is_set(PINB,0));
 	disable_watchdog();
 	
 	enable_input_capture();
-	recording = 1;
+	
 	while(recording)
 	{
 		uart_sendstring("Inside IR recording\r\n");
@@ -66,7 +68,7 @@ uint8_t ir_record_command(uint16_t * ir)
 
 	
 	uart_sendstring("uart recording successful\r\n");
-	uint16_t sum = 0;
+	/*uint16_t sum = 0;
 	for(uint8_t i = 0;i<MAX_IR_EDGES;i++)
 		{
 			if(!(*(ir+i))) break;
@@ -75,9 +77,9 @@ uint8_t ir_record_command(uint16_t * ir)
 			sum+=*(ir+i);
 		}
 	//sprintf(debug_string,"The total command time is %d ticks.\n",sum);
-	//uart_sendstring(debug_string);
+	//uart_sendstring(debug_string);*/
 
-	uart_sendstring("Recording finished");
+	uart_sendstring("Recording finished\n");
 	if(ip-ir==0)
 	{
 		uart_sendstring("No IR data was recorded.\n");
@@ -99,20 +101,38 @@ uint8_t ir_record_command(uint16_t * ir)
  */
 uint8_t ir_play_command(uint16_t * ir)
 {
-	uint8_t debug = 0;
+	uint8_t debug = 1;
 	IR_LED_DDR |= _BV(IR_LED_PIN);//set OC2A as output
 	char debug_string[100];
 	uint16_t* ip;
 	ip = ir;
+	if(debug==10)
+	{
+		uart_sendstring("The contents of the array are:\n");
+		while(*ip && ip-ir<=MAX_IR_EDGES)
+		{
+			sprintf(debug_string, "%d\n",*ip);
+			uart_sendstring(debug_string);
+			ip++;
+		}
+		ip = ir;
+
+	}
 	replaying = 1;
 	toggle_flag = 0;
 	enable_carrier_freq();
 	OCR1A = *ip;
 	enable_replay_timer();
 	TCNT1 = 0;
-	while (*ip != 0 && ir-ip<MAX_IR_EDGES)
+	while (*ir != 0 && ir-ip<MAX_IR_EDGES)
 	{
 		/* code */
+		if(debug)
+		{
+			sprintf(debug_string, "The current pointer value is %d\n",*ip);
+			uart_sendstring(debug_string);
+		}
+		
 		if(toggle_flag)
 		{
 			ip++;
@@ -120,6 +140,7 @@ uint8_t ir_play_command(uint16_t * ir)
 			OCR1A = *ip;
 			//TCCR2B |= _BV(CS12);
 			TCNT1 = 0;
+			if(debug)uart_sendstring("Toggle flag raised, stepping pointer.\n");
 		}
 		/*
 		uart_sendstring("Current value of ip:\t");
@@ -151,7 +172,7 @@ void enable_input_capture(void){
  */
 void disable_input_capture()
 {
-     TIMSK1 &= ~(_BV(TOIE1) | _BV(ICIE1));
+    TCCR1B &= ~_BV(CS12);
 }
 
 
@@ -163,9 +184,9 @@ void enable_carrier_freq(){
 
      IR_LED_DDR |= _BV(IR_LED_PIN);
      //init timer0 for PWM
-	TCCR2A |= _BV(COM2A0) | _BV(WGM21);	//ctc
-	TCCR2B |= _BV(CS21); //8 prescale
-	OCR2A =  25; //50 DTC was 25
+	TCCR0A |= _BV(COM0A0) | _BV(WGM01);	//ctc
+	TCCR0B |= _BV(CS01); //8 prescale
+	OCR0A =  25; //50 DTC was 25
 }
 
 
@@ -255,7 +276,7 @@ ISR(TIMER1_OVF_vect){
 	if(recording)
 	{
 		recording = 0;
-    	uart_sendstring("OVERFLOW detected. Stopping recording.\n");
+    	uart_sendstring("Timer overflow detected. Stopping recording.\n");
 	}
     
 }
@@ -266,7 +287,7 @@ ISR(TIMER1_OVF_vect){
  */
 ISR(WDT_vect)
 {
-    if(recording)
+    if(wait_for_start)
     {
         uart_sendstring("TIMEOUT WHILE RECORDING\n");
         wait_for_start = 0;

@@ -90,9 +90,9 @@ extern volatile uint8_t wait_for_start;
 #define IR_SENSOR_PORT PORTB
 #define IR_SENSOR_PIN 0
 
-#define IR_LED_DDR DDRB
-#define IR_LED_PORT PORTB
-#define IR_LED_PIN 3
+#define IR_LED_DDR DDRD
+#define IR_LED_PORT PORTD
+#define IR_LED_PIN 6
 
 enum {IR_RECORDING_SUCCESSFUL=0,IR_REPLAY_SUCCESSFUL=0,ARRAY_LIMIT_EXCEEDED,IR_NO_DATA,IR_ARRAY_NOT_EMPTY};
 	

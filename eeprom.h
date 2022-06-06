@@ -63,7 +63,7 @@ int8_t eeprom_get_command_index (char * name);
  * @param index Index of the command, of which the name should be returned
  * @return Length of the name string, 0 when no valid command at the index.
  */
-uint8_t eeprom_get_command_name (int8_t index, char * name);  
+uint8_t eeprom_get_command_name (uint8_t index, char * name);  
 
 /** @brief Store a command on a given index
  * 
