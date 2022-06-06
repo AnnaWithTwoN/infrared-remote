@@ -9,7 +9,7 @@ PROGRAMMER = arduino
 LIBDIR   = vendor
 
 # simavr can be removed as soon as the homebrew formula is fixed.
-INCLUDES = -I. -I$(LIBDIR) -isystem"/usr/local/include/simavr"
+#INCLUDES = -I. -I$(LIBDIR) -isystem"/usr/local/include/simavr"
 
 ########################################################
 #  nothing below this point should have to be changed  #
