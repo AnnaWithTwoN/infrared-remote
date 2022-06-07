@@ -189,7 +189,7 @@ int8_t eeprom_get_command_index(char * name)
  * @param index Index of the command, of which the name should be returned
  * @return Length of the name string, 0 when no valid command at the index.
  */
-uint8_t eeprom_get_command_name(int8_t index, char * name)
+uint8_t eeprom_get_command_name(uint8_t index, char * name)
 {
 	uart_sendstring("Getting command name for index ");
 	uart_sendstring(i16tos(index));
@@ -249,6 +249,8 @@ uint8_t eeprom_store_command(int8_t index, char * name, uint16_t * ir)
 		buffer[i] = *ir & 0xff;
 		buffer[i + 1] = *ir >> 8;
 		ir++;
+		cntr++;
+		
 	}
 	for(uint8_t i = 0; i < MAX_IR_EDGES / PAGE_SIZE; i++){
 		eeprom_write_page(start_address_command + i * PAGE_SIZE, buffer);

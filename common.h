@@ -124,5 +124,7 @@ void print_command(uint16_t* ir);
 
 int8_t str_equal(char* str1, char* str2);
 
+void clear_array(uint16_t* arr, uint8_t length);
+
 
 #endif /* _COMMON_H_ */
