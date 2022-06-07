@@ -23,6 +23,7 @@
  */
 
 #include "common.h"
+#include "ir.h"
 #include <stdio.h>
 
 /// currently working index (rec/replay/del)
@@ -67,6 +68,18 @@ int main(void) {
         break;
       }
 
+
+      // uint16_t sum = 0;
+      // char debug_string[50];
+      // for (uint8_t i = 0; i < MAX_IR_EDGES; i++) {
+        
+      //   sprintf(debug_string,"The %d. timestamp is %d\r\n",i,ir_timings[i]);
+      //   uart_sendstring(debug_string);
+      //   sum += *(ir_timings + i);
+      // }
+      // sprintf(debug_string, "The total command time is %d ticks.\r\n", sum);
+      // uart_sendstring(debug_string);
+
       // TBD: implement error handling here!
 
       // if ir_record_command was successful (returnvalue == 0)
@@ -85,22 +98,20 @@ int main(void) {
         break;
       }
       clear_array(ir_timings, MAX_IR_EDGES);
+      
       ret_uint = eeprom_load_command(current_index, ir_timings);
 
       // TBD: implement error handling here!
 
-      // if the load was successful, we have everything to replay the command.
-      uint16_t sum = 0;
-      char debug_string[50];
-      for (uint8_t i = 0; i < MAX_IR_EDGES; i++) {
-        if (!(*(ir_timings + i)))
-          break;
-        sprintf(debug_string,"The %d. timestamp is %d\n",i,ir_timings[i]);
-        uart_sendstring(debug_string);
-        sum += *(ir_timings + i);
-      }
-      sprintf(debug_string, "The total command time is %d ticks.\n", sum);
-      uart_sendstring(debug_string);
+      //if the load was successful, we have everything to replay the command.
+      // sum = 0;
+      // for (uint8_t i = 0; i < MAX_IR_EDGES; i++) {
+      //   sprintf(debug_string,"The %d. timestamp is %d\r\n",i,ir_timings[i]);
+      //   uart_sendstring(debug_string);
+      //   sum += *(ir_timings + i);
+      // }
+      // sprintf(debug_string, "The total command time is %d ticks.\r\n", sum);
+      // uart_sendstring(debug_string);
       ret_uint = ir_play_command(ir_timings);
 
       // TBD: implement error handling here!

@@ -104,5 +104,5 @@ int8_t str_equal(char* str1, char* str2) {
 }
 
 void clear_array(uint16_t* arr, uint8_t length) {
-    memset(arr, 0, length);
+    memset(arr, 0, 2*length);
 }

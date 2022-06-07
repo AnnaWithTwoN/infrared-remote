@@ -6,11 +6,12 @@
  * TBD: extend this file header with infos & name
  */
 
-#include "common.h"
+#include "common.h"	
 #include "avr/io.h"
 #include "ir.h"
 #include "stdio.h"
 #include "inttypes.h"
+#include <stdint.h>
 volatile uint16_t current_timestamp=0;
 volatile uint16_t recording=0;
 volatile uint8_t replaying=0;
@@ -49,7 +50,12 @@ uint8_t ir_record_command(uint16_t * ir)
 	
 	while(recording)
 	{
-		uart_sendstring("Inside IR recording\r\n");
+		//uart_sendstring("Inside IR recording\r\n");
+		// if(TCNT1>32000)
+		// {
+		// 	sprintf(debug_string, "TCNT1 values is %d\r\n",TCNT1);
+		// 	uart_sendstring(debug_string);
+		// }
 		if((ip-ir)> MAX_IR_EDGES)
 		{
 			disable_input_capture();
@@ -66,25 +72,25 @@ uint8_t ir_record_command(uint16_t * ir)
 	}
 	disable_input_capture();
 
-	
-	uart_sendstring("uart recording successful\r\n");
-	/*uint16_t sum = 0;
-	for(uint8_t i = 0;i<MAX_IR_EDGES;i++)
-		{
-			if(!(*(ir+i))) break;
-			//sprintf(debug_string,"The %d. timestamp is %d\n",i,ir_timings[i]);
-			//uart_sendstring(debug_string);
-			sum+=*(ir+i);
-		}
-	//sprintf(debug_string,"The total command time is %d ticks.\n",sum);
-	//uart_sendstring(debug_string);*/
 
-	uart_sendstring("Recording finished\n");
+	// uint16_t sum = 0;
+	// for(uint8_t i = 0;i<MAX_IR_EDGES;i++)
+	// 	{
+	// 		sprintf(debug_string,"The %d. timestamp is %d\r\n",i,ir[i]);
+	// 		uart_sendstring(debug_string);
+	// 		sum+=*(ir+i);
+	// 	}
+	// sprintf(debug_string,"The total command time is %d ticks.\r\n",sum);
+	// uart_sendstring(debug_string);
+
+	
 	if(ip-ir==0)
 	{
-		uart_sendstring("No IR data was recorded.\n");
+		uart_sendstring("No IR data was recorded.\r\n");
 		return IR_NO_DATA;
 	}
+
+	uart_sendstring("Recording finished\r\n");
 	return IR_RECORDING_SUCCESSFUL;	
 }
 
@@ -101,17 +107,17 @@ uint8_t ir_record_command(uint16_t * ir)
  */
 uint8_t ir_play_command(uint16_t * ir)
 {
-	uint8_t debug = 1;
+	uint8_t debug = 0;
 	IR_LED_DDR |= _BV(IR_LED_PIN);//set OC2A as output
 	char debug_string[100];
 	uint16_t* ip;
 	ip = ir;
 	if(debug==10)
 	{
-		uart_sendstring("The contents of the array are:\n");
+		uart_sendstring("The contents of the array are:\r\n");
 		while(*ip && ip-ir<=MAX_IR_EDGES)
 		{
-			sprintf(debug_string, "%d\n",*ip);
+			sprintf(debug_string, "%d\r\n",*ip);
 			uart_sendstring(debug_string);
 			ip++;
 		}
@@ -124,12 +130,13 @@ uint8_t ir_play_command(uint16_t * ir)
 	OCR1A = *ip;
 	enable_replay_timer();
 	TCNT1 = 0;
-	while (*ir != 0 && ir-ip<MAX_IR_EDGES)
+	uint8_t cntr = 0;
+	while (*ip > 0 && ip-ir<MAX_IR_EDGES)
 	{
 		/* code */
 		if(debug)
 		{
-			sprintf(debug_string, "The current pointer value is %d\n",*ip);
+			sprintf(debug_string, "The current pointer value is %d\r\n",*ip);
 			uart_sendstring(debug_string);
 		}
 		
@@ -138,20 +145,21 @@ uint8_t ir_play_command(uint16_t * ir)
 			ip++;
 			toggle_flag = 0;
 			OCR1A = *ip;
-			//TCCR2B |= _BV(CS12);
 			TCNT1 = 0;
-			if(debug)uart_sendstring("Toggle flag raised, stepping pointer.\n");
+			if(debug)uart_sendstring("Toggle flag raised, stepping pointer.\r\n");
+			//cntr++;
 		}
-		/*
-		uart_sendstring("Current value of ip:\t");
-		sprintf(debug_string,"%d\n",*ip);
-		uart_sendstring(debug_string);*/
+		
+		// uart_sendstring("Current value of ip:\t");
+		// sprintf(debug_string,"%d\n",*ip);
+		// uart_sendstring(debug_string);
 
 		
 	}
+	replaying = 0;
 	disable_carrier_freq();
 	disable_replay_timer();
-	replaying = 0;
+	
 	IR_LED_PORT &= ~_BV(IR_LED_PIN);
 	
 	uart_sendstring("Replaying finished\n");
@@ -159,11 +167,12 @@ uint8_t ir_play_command(uint16_t * ir)
 }
 
 void enable_input_capture(void){
-	TCNT1 = 0;
-	TCCR1B |= _BV(CS12) | _BV(ICNC1);
-	TCCR1B &= ~_BV(ICES1);
+
+	TCCR1B =  _BV(CS12) | _BV(ICNC1);
+	// TCCR1B |= _BV(CS12) | _BV(ICNC1);
+	// TCCR1B &= ~_BV(ICES1);
 	TIMSK1 |= _BV(TOIE1) | _BV(ICIE1);
-     
+	TCNT1 = 0;
 }
 
 /**
@@ -172,7 +181,8 @@ void enable_input_capture(void){
  */
 void disable_input_capture()
 {
-    TCCR1B &= ~_BV(CS12);
+	TCNT1 = 0;
+    TCCR1B &= ~(_BV(CS12) | _BV(CS10) | _BV(CS11)) ;
 }
 
 
@@ -195,7 +205,7 @@ void enable_carrier_freq(){
  *
  */
 void disable_carrier_freq(){
-     TCCR2B &= ~(_BV(CS20) | _BV(CS21) | _BV(CS22));
+     TCCR0B &= ~(_BV(CS00) | _BV(CS01) | _BV(CS02));
      IR_LED_DDR &= ~_BV(IR_LED_PIN);
 }
 
