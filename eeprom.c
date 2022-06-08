@@ -9,6 +9,8 @@
 #include "common.h"
 #include "eeprom.h"
 #include "i2c.h"
+#include <stdint.h>
+#include "stdio.h"
 
 
 
@@ -189,7 +191,7 @@ int8_t eeprom_get_command_index(char * name)
  * @param index Index of the command, of which the name should be returned
  * @return Length of the name string, 0 when no valid command at the index.
  */
-uint8_t eeprom_get_command_name(int8_t index, char * name)
+uint8_t eeprom_get_command_name(uint8_t index, char * name)
 {
 	uart_sendstring("Getting command name for index ");
 	uart_sendstring(i16tos(index));
@@ -220,6 +222,8 @@ uint8_t eeprom_store_command(int8_t index, char * name, uint16_t * ir)
 	uart_sendstring("Storing command with name ");
 	uart_sendstring(name);
 	uart_sendstring("...\r\n");
+	uint16_t* ip;
+	ip = ir;
 
 	if(index == -1) {
 		// find first empty slot
@@ -246,14 +250,28 @@ uint8_t eeprom_store_command(int8_t index, char * name, uint16_t * ir)
 		name++;
 	}
 	eeprom_write_byte(start_address_name++, 0);
-
-	while(*ir) {
+	uint16_t cntr = 0;
+	while(cntr< MAX_IR_EDGES) {
 		eeprom_write_byte(start_address_command++, *ir & 0xff);
 		_delay_ms(10);
 		eeprom_write_byte(start_address_command++, *ir >> 8);
 		_delay_ms(10);
 		ir++;
+		cntr++;
+		
 	}
+
+	// char debug_string[50];
+	// uart_sendstring("The contents of the array after storing in eeprom:\r\n");
+	// uint16_t sum = 0;
+	// for(uint8_t i = 0;i<MAX_IR_EDGES;i++)
+	// 	{
+	// 		sprintf(debug_string,"The %d. timestamp is %d\r\n",i,ip[i]);
+	// 		uart_sendstring(debug_string);
+	// 		sum+=*(ip+i);
+	// 	}
+	// sprintf(debug_string,"The total command time is %d ticks.\r\n",sum);
+	// uart_sendstring(debug_string);
 
 	uart_sendstring("Command stored\r\n");
 	
@@ -278,18 +296,24 @@ uint8_t eeprom_load_command(int8_t index, uint16_t * ir)
 	uint16_t start_address_command = index * 510 + 10;
 	uint8_t buffer[500];
 	eeprom_read_bytes(start_address_command, buffer, 500);
-
+	
 	for(uint8_t i = 0; i < 250; i++){
-		ir[i] = buffer[i * 2];
-		ir[i] |= (buffer[i * 2 + 1] << 8);
-		uart_sendstring(i16tos(buffer[i * 2]));
+		if(!buffer[i*2]) break;
+		else
+		{
+			ir[i] = buffer[i * 2];
+			ir[i] |= (buffer[i * 2 + 1] << 8);
+		}
+		
+
+		/*uart_sendstring(i16tos(buffer[i * 2]));
 		uart_sendstring(", ");
 		uart_sendstring(i16tos(buffer[i * 2 + 1]));
 		uart_sendstring(" -> ");
 		uart_sendstring(i16tos(ir[i]));
-		uart_sendstring("; ");
+		uart_sendstring("; ");*/
 	}
-	uart_sendstring("\r\n");
+	//uart_sendstring("\r\n");
 
 	uart_sendstring("Command loaded\r\n");
 	
