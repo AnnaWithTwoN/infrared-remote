@@ -1,17 +1,14 @@
 /*
- * eeprom.h
+ * eeprom.c
  * 
  * This module is responsible for the storage part.
  * 
- * TBD: extend this file header with infos & name
+ * Author: Anna Sidorova
  */
 
 #include "common.h"
 #include "eeprom.h"
 #include "i2c.h"
-#include <stdint.h>
-#include "stdio.h"
-
 
 
 /** @brief Init EEPROM
@@ -25,7 +22,9 @@
  */
 uint8_t eeprom_init()
 {
+	#ifdef INFO_LOGS
 	uart_sendstring("Initializing EEPROM...\r\n");
+	#endif
 
 	twi_init();
 	// clock to output in master mode
@@ -35,11 +34,11 @@ uint8_t eeprom_init()
 	uint8_t stored_magic_number = 0;
 	eeprom_read_bytes(MAGIC_NUMBER_ADDRESS, &stored_magic_number, 1);
 
-	/*
-	// for debugging
+	#ifdef DEBUG_LOGS
 	uart_sendstring("Stored magic number: ");
 	uart_sendstring(i16tos(stored_magic_number));
-	uart_sendstring("\r\n");*/
+	uart_sendstring("\r\n");
+	#endif
 
 	if(stored_magic_number != MAGIC_NUMBER){
 		// initalize EEPROM
@@ -51,17 +50,17 @@ uint8_t eeprom_init()
 
 		// set the first byte of every command to 0, denoting an empty slot
 		for(uint8_t i = 0; i < MAX_COMMANDS; i++){
-			eeprom_write_byte(510 * i, 0);
+			eeprom_write_byte(FULL_COMMAND_ARR_LENGTH * i, 0);
 			_delay_ms(10);
 		}
 	}
 
-	
-	// see list of existsing commands - for debugging
+	#ifdef INFO_LOGS	
+	// see list of existsing commands
 	uint8_t slot;
-	char name2[10];
+	char name2[MAX_NAME_LEN];
 	for(uint8_t i = 0; i < MAX_COMMANDS; i++){
-		eeprom_read_bytes(510 * i, &slot, 1);
+		eeprom_read_bytes(FULL_COMMAND_ARR_LENGTH * i, &slot, 1);
 		if(slot != 0){
 			eeprom_get_command_name(i, name2);
 			uart_sendstring("Command name: ");
@@ -69,20 +68,22 @@ uint8_t eeprom_init()
 			uart_sendstring("\r\n");
 		}
 	}
+	#endif
 
-	/*
-	// see initial memory - for debugging
-	uint8_t buffer[500];
-	eeprom_read_bytes(0, buffer, 500);
+	#ifdef DEBUG_LOGS
+	// see first few bytes of memory - for debugging
+	uint8_t buffer[20];
+	eeprom_read_bytes(0, buffer, 20);
 	for(uint8_t i = 0; i < 20; i++){
 		uart_sendstring(i16tos(buffer[i]));
 		uart_sendstring(", ");
 	}
-	uart_sendstring("\r\n");*/
+	uart_sendstring("\r\n");
+	#endif
 
-	// TODO: check for valid memory?
-
+	#ifdef INFO_LOGS
 	uart_sendstring("EEPROM is ready\r\n");
+	#endif
 
 	return 0;
 }
@@ -97,13 +98,17 @@ int8_t eeprom_get_prev_command(int8_t* current_index, char* name)
 	for(int8_t i = (*current_index - 1 + MAX_COMMANDS) % MAX_COMMANDS; 
 		i < MAX_COMMANDS + *current_index; 
 		i = (i - 1 + MAX_COMMANDS) % MAX_COMMANDS){
-		eeprom_read_bytes(510 * i, &slot, 1);
+		eeprom_read_bytes(FULL_COMMAND_ARR_LENGTH * i, &slot, 1);
 		if(slot != 0){
 			eeprom_get_command_name(i, name);
 			*current_index = i;
-			/*uart_sendstring("Command name: ");
+
+			#ifdef DEBUG_LOGS
+			uart_sendstring("Command name: ");
 			uart_sendstring(name);
-			uart_sendstring("\r\n");*/
+			uart_sendstring("\r\n");
+			#endif
+
 			return 0;
 		}
 	}
@@ -118,13 +123,17 @@ int8_t eeprom_get_next_command(int8_t* current_index, char* name)
 	for(uint8_t i = (*current_index + 1) % MAX_COMMANDS; 
 		i < MAX_COMMANDS + *current_index; 
 		i = (i + 1) % MAX_COMMANDS){
-		eeprom_read_bytes(510 * i, &slot, 1);
+		eeprom_read_bytes(FULL_COMMAND_ARR_LENGTH * i, &slot, 1);
 		if(slot != 0){
 			eeprom_get_command_name(i, name);
 			*current_index = i;
-			/*uart_sendstring("Command name: ");
+
+			#ifdef DEBUG_LOGS
+			uart_sendstring("Command name: ");
 			uart_sendstring(name);
-			uart_sendstring("\r\n");*/
+			uart_sendstring("\r\n");
+			#endif
+
 			return 0;
 		}
 	}
@@ -146,7 +155,7 @@ uint16_t eeprom_get_command_count()
 
 	uint8_t slot;
 	for(uint8_t i = 0; i < MAX_COMMANDS; i++){
-		eeprom_read_bytes(510 * i, &slot, 1);
+		eeprom_read_bytes(FULL_COMMAND_ARR_LENGTH * i, &slot, 1);
 		if(slot != 0){
 			counter++;
 		}
@@ -166,14 +175,16 @@ uint16_t eeprom_get_command_count()
  */
 int8_t eeprom_get_command_index(char * name)
 {
+	#ifdef INFO_LOGS
 	uart_sendstring("Getting index of command name ");
 	uart_sendstring(name);
 	uart_sendstring(" ...\r\n");
+	#endif
 
-	char command_name[10];
+	char command_name[MAX_NAME_LEN];
 
 	for(uint8_t i = 0; i < MAX_COMMANDS; i++){
-		eeprom_read_bytes(510 * i, (uint8_t*)command_name, 10);
+		eeprom_read_bytes(FULL_COMMAND_ARR_LENGTH * i, (uint8_t*)command_name, MAX_NAME_LEN);
 		if(str_equal(name, command_name)){
 			return i;
 		}
@@ -193,13 +204,14 @@ int8_t eeprom_get_command_index(char * name)
  */
 uint8_t eeprom_get_command_name(uint8_t index, char * name)
 {
+	#ifdef INFO_LOGS
 	uart_sendstring("Getting command name for index ");
 	uart_sendstring(i16tos(index));
 	uart_sendstring("...\r\n");
+	#endif
 
-	uint16_t start_address_name = index * 510;
-	// QQ: why wrong sideness for a byte?
-	eeprom_read_bytes(start_address_name, (uint8_t*)name, 10);
+	uint16_t start_address_name = index * FULL_COMMAND_ARR_LENGTH;
+	eeprom_read_bytes(start_address_name, (uint8_t*)name, MAX_NAME_LEN);
 	
 	return 0;
 }
@@ -219,22 +231,26 @@ uint8_t eeprom_get_command_name(uint8_t index, char * name)
  */
 uint8_t eeprom_store_command(int8_t index, char * name, uint16_t * ir)
 {
+	#ifdef INFO_LOGS
 	uart_sendstring("Storing command with name ");
 	uart_sendstring(name);
 	uart_sendstring("...\r\n");
-	uint16_t* ip;
-	ip = ir;
+	#endif
 
 	if(index == -1) {
 		// find first empty slot
 		uint8_t slot;
 		for(uint8_t i = 0; i < MAX_COMMANDS; i++){
-			eeprom_read_bytes(510 * i, &slot, 1);
-			/*uart_sendstring("Slot ");
+			eeprom_read_bytes(FULL_COMMAND_ARR_LENGTH * i, &slot, 1);
+
+			#ifdef DEBUG_LOGS
+			uart_sendstring("Slot ");
 			uart_sendstring(i16tos(i));
 			uart_sendstring(" is ");
 			uart_sendstring(i16tos(slot));
-			uart_sendstring("...\r\n");*/
+			uart_sendstring("...\r\n");
+			#endif
+
 			if(slot == 0){
 				index = i;
 				break;
@@ -242,38 +258,26 @@ uint8_t eeprom_store_command(int8_t index, char * name, uint16_t * ir)
 		}
 	}
 
-	uint16_t start_address_name = index * 510;
-	uint16_t start_address_command = start_address_name + 10;
+	uint16_t start_address_name = index * FULL_COMMAND_ARR_LENGTH;
+	uint16_t start_address_command = start_address_name + MAX_NAME_LEN;
 	while(*name) {
 		eeprom_write_byte(start_address_name++, *name);
 		_delay_ms(10);
 		name++;
 	}
 	eeprom_write_byte(start_address_name++, 0);
-	uint16_t cntr = 0;
-	while(cntr< MAX_IR_EDGES) {
+	uint8_t counter = MAX_IR_EDGES;
+	while(counter--) {
 		eeprom_write_byte(start_address_command++, *ir & 0xff);
 		_delay_ms(10);
 		eeprom_write_byte(start_address_command++, *ir >> 8);
 		_delay_ms(10);
 		ir++;
-		cntr++;
-		
 	}
 
-	// char debug_string[50];
-	// uart_sendstring("The contents of the array after storing in eeprom:\r\n");
-	// uint16_t sum = 0;
-	// for(uint8_t i = 0;i<MAX_IR_EDGES;i++)
-	// 	{
-	// 		sprintf(debug_string,"The %d. timestamp is %d\r\n",i,ip[i]);
-	// 		uart_sendstring(debug_string);
-	// 		sum+=*(ip+i);
-	// 	}
-	// sprintf(debug_string,"The total command time is %d ticks.\r\n",sum);
-	// uart_sendstring(debug_string);
-
+	#ifdef INFO_LOGS
 	uart_sendstring("Command stored\r\n");
+	#endif
 	
 	return 0;
 }
@@ -289,15 +293,17 @@ uint8_t eeprom_store_command(int8_t index, char * name, uint16_t * ir)
  */
 uint8_t eeprom_load_command(int8_t index, uint16_t * ir)
 {
+	#ifdef INFO_LOGS
 	uart_sendstring("Loading command at index ");
 	uart_sendstring(i16tos(index));
 	uart_sendstring("...\r\n");
+	#endif
 
-	uint16_t start_address_command = index * 510 + 10;
-	uint8_t buffer[500];
-	eeprom_read_bytes(start_address_command, buffer, 500);
+	uint16_t start_address_command = index * FULL_COMMAND_ARR_LENGTH + MAX_NAME_LEN;
+	uint8_t buffer[IR_EDGES_ARR_LENGTH];
+	eeprom_read_bytes(start_address_command, buffer, IR_EDGES_ARR_LENGTH);
 	
-	for(uint8_t i = 0; i < 250; i++){
+	for(uint8_t i = 0; i < MAX_IR_EDGES; i++){
 		if(!buffer[i*2]) break;
 		else
 		{
@@ -305,17 +311,19 @@ uint8_t eeprom_load_command(int8_t index, uint16_t * ir)
 			ir[i] |= (buffer[i * 2 + 1] << 8);
 		}
 		
-
-		/*uart_sendstring(i16tos(buffer[i * 2]));
+		#ifdef DEBUG_LOGS
+		uart_sendstring(i16tos(buffer[i * 2]));
 		uart_sendstring(", ");
 		uart_sendstring(i16tos(buffer[i * 2 + 1]));
 		uart_sendstring(" -> ");
 		uart_sendstring(i16tos(ir[i]));
-		uart_sendstring("; ");*/
+		uart_sendstring(";\r\n");
+		#endif
 	}
-	//uart_sendstring("\r\n");
 
+	#ifdef INFO_LOGS
 	uart_sendstring("Command loaded\r\n");
+	#endif
 	
 	return 0;
 } 
@@ -331,14 +339,19 @@ uint8_t eeprom_load_command(int8_t index, uint16_t * ir)
  */
 uint8_t eeprom_delete_command(int8_t index)
 {
+	#ifdef INFO_LOGS
 	uart_sendstring("Deleting command at index ");
 	uart_sendstring(i16tos(index));
 	uart_sendstring("...\r\n");
+	#endif
 
-	eeprom_write_byte(510 * index, 0);
+	eeprom_write_byte(FULL_COMMAND_ARR_LENGTH * index, 0);
 	_delay_ms(10);
 
+	#ifdef INFO_LOGS
 	uart_sendstring("Command deleted\r\n");
+	#endif
+	
 	
 	return 0;
 }

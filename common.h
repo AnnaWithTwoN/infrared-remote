@@ -60,6 +60,10 @@
  */
 #define MAX_NAME_LEN 10
 
+#define IR_EDGES_ARR_LENGTH (MAX_IR_EDGES * 2)
+
+#define FULL_COMMAND_ARR_LENGTH (IR_EDGES_ARR_LENGTH + MAX_NAME_LEN)
+
 
 /** @brief Array of timestamps between edges
  * 

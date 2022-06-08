@@ -3,7 +3,7 @@
  * 
  * This module is responsible for the storage part.
  * 
- * TBD: extend this file header with infos & name
+ * Author: Anna Sidorova
  */
 
 #ifndef _EEPROM_H_
@@ -16,8 +16,6 @@
 
 #define MAGIC_NUMBER 123
 #define MAGIC_NUMBER_ADDRESS (MEMORY_SIZE - 8)
-
-#include "common.h"
 
 /** @brief Init EEPROM
  * 
@@ -38,7 +36,7 @@ uint8_t eeprom_init ();
  * 
  * @return number of commands (count)
  */
-uint16_t eeprom_get_command_count ();  
+uint16_t eeprom_get_command_count ();
 
 int8_t eeprom_get_prev_command(int8_t* current_index, char* name);
 int8_t eeprom_get_next_command(int8_t* current_index, char* name);

@@ -25,7 +25,8 @@
 #include "common.h"
 #include "string.h"
 
-
+#define INFO_LOGS 1
+#define DEBUG_LOGS 0
 
 /** @brief Init UART
  * 
