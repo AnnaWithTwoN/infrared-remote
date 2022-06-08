@@ -241,21 +241,23 @@ uint8_t eeprom_store_command(int8_t index, char * name, uint16_t * ir)
 	uint16_t start_address_name = index * 510;
 	uint16_t start_address_command = start_address_name + 10;
 	
-	eeprom_write_page(start_address_name, (uint8_t*)name);
-	_delay_ms(10);
+	//eeprom_write_page(start_address_name, (uint8_t*)name);
+	//_delay_ms(10);
 
-	uint8_t buffer[MAX_IR_EDGES * 2];
-	for(uint16_t i = 0; i < MAX_IR_EDGES * 2; i += 2){
+	uint8_t buffer[MAX_IR_EDGES * 2 + MAX_NAME_LEN];
+	for(uint16_t i = 0; i < MAX_NAME_LEN; i++){
+		buffer[i] = name[i];
+	}
+	for(uint16_t i = MAX_NAME_LEN; i < MAX_IR_EDGES * 2 + MAX_NAME_LEN; i += 2){
 		buffer[i] = *ir & 0xff;
 		buffer[i + 1] = *ir >> 8;
 		ir++;
-		cntr++;
-		
 	}
-	for(uint8_t i = 0; i < MAX_IR_EDGES / PAGE_SIZE; i++){
-		eeprom_write_page(start_address_command + i * PAGE_SIZE, buffer);
-		_delay_ms(10);
+	for(uint16_t i = 0; i < MAX_IR_EDGES * 2 + MAX_NAME_LEN; i += 1){
+		uart_sendstring(i16tos(buffer[i]));
+		uart_sendstring("\r\n");
 	}
+	eeprom_write_array(start_address_name, buffer, MAX_IR_EDGES * 2 + MAX_NAME_LEN);
 
 	uart_sendstring("Command stored\r\n");
 	
@@ -289,9 +291,8 @@ uint8_t eeprom_load_command(int8_t index, uint16_t * ir)
 		uart_sendstring(i16tos(buffer[i * 2 + 1]));
 		uart_sendstring(" -> ");
 		uart_sendstring(i16tos(ir[i]));
-		uart_sendstring("; ");
+		uart_sendstring(";\r\n");
 	}
-	uart_sendstring("\r\n");
 
 	uart_sendstring("Command loaded\r\n");
 	

@@ -49,7 +49,7 @@ uint8_t ir_record_command(uint16_t * ir)
 	
 	while(recording)
 	{
-		uart_sendstring("Inside IR recording\r\n");
+		
 		if((ip-ir)> MAX_IR_EDGES)
 		{
 			disable_input_capture();
@@ -58,6 +58,8 @@ uint8_t ir_record_command(uint16_t * ir)
 		}
 		if(current_timestamp)
 		{
+			uart_sendstring(i16tos(current_timestamp));
+			uart_sendstring("Inside IR recording\r\n");
 			*ip = current_timestamp;
 			current_timestamp = 0;
 			ip++;
@@ -101,7 +103,7 @@ uint8_t ir_record_command(uint16_t * ir)
  */
 uint8_t ir_play_command(uint16_t * ir)
 {
-	uint8_t debug = 1;
+	uint8_t debug = 0;
 	IR_LED_DDR |= _BV(IR_LED_PIN);//set OC2A as output
 	char debug_string[100];
 	uint16_t* ip;

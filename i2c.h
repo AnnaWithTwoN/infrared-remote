@@ -36,5 +36,7 @@ uint8_t eeprom_write_byte (uint16_t addr, uint8_t value);
 
 uint8_t eeprom_write_page(uint16_t addr, uint8_t* arr);
 
+uint8_t eeprom_write_array(uint16_t addr, uint8_t* arr, uint16_t arr_length);
+
 // read multiple bytes from I2C EEPROM (MRM)
 uint8_t eeprom_read_bytes (uint16_t addr, uint8_t *values, uint16_t size);

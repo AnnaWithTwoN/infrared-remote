@@ -9,7 +9,7 @@
 #include <util/delay.h>
 #include <avr/interrupt.h>
 #include <util/twi.h>
-//#include "common.h"
+#include "common.h"
 #include "i2c.h"
 
 void twi_init() {
@@ -100,8 +100,9 @@ uint8_t eeprom_write_page(uint16_t addr, uint8_t* arr) {
 	// write bytes until page is over
 	while(counter--){
 		twi_write(*arr);
+		_delay_ms(1);
 		//uart_sendstring(i16tos(*arr));
-		//uart_sendstring(",\r\n");
+		//uart_sendstring("<- in write page\r\n");
 		/*if(twi_write(*arr) != 0x28){
 			uart_sendstring("Write of number ");
 			uart_sendstring(i16tos(*arr));
@@ -126,6 +127,18 @@ uint8_t eeprom_write_page(uint16_t addr, uint8_t* arr) {
 	// TBD: write data byte (value)
 	// TBD: (optional) check status (0x28: ok)
 	// TBD: create Stop Condition
+}
+
+uint8_t eeprom_write_array(uint16_t addr, uint8_t* arr, uint16_t arr_length) {
+	for(uint8_t i = 0; i < arr_length / PAGE_SIZE; i++){
+		uart_sendstring(i16tos(addr + i * PAGE_SIZE));
+		uart_sendstring(" <- address;\r\n");
+		uart_sendstring(i16tos(arr + i * PAGE_SIZE));
+		uart_sendstring(" <- array pointer\r\n");
+		eeprom_write_page(addr + i * PAGE_SIZE, arr + i * PAGE_SIZE);
+		_delay_ms(10);
+	}
+	return 0;
 }
 
 // read multiple bytes from I2C EEPROM (MRM)
