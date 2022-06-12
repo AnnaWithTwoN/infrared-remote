@@ -70,19 +70,7 @@ uint8_t eeprom_write_byte(uint16_t addr, uint8_t value) {
 	twi_write(value);
 
 	twi_stop();
-	return(0); // success! return no error code
-
-	// TBD: create Start Condition
-	// TBD: (optional) check status (0x08: ok)
-	// TBD: write EEPROM chip I2C address (MTM: R/W bit = 0)
-	// TBD: (optional) check status (0x18: ok)
-	// TBD: write memory address (addr high byte)
-	// TBD: (optional) check status (0x28: ok)
-	// TBD: write memory address (addr low byte)
-	// TBD: (optional) check status (0x28: ok)
-	// TBD: write data byte (value)
-	// TBD: (optional) check status (0x28: ok)
-	// TBD: create Stop Condition
+	return 0;
 }
 
 // read multiple bytes from I2C EEPROM (MRM)
@@ -106,23 +94,5 @@ uint8_t eeprom_read_bytes(uint16_t addr, uint8_t *values, uint16_t size) {
 	*values = twi_read_NACK();
 
 	twi_stop();
-	return(0); // success! return no error code
-
-	// TBD: create Start Condition
-	// TBD: (optional) check status (0x08: ok)
-	// TBD: write EEPROM chip I2C address (MTM: R/W bit = 0)
-	// TBD: (optional) check status (0x18: ok)
-	// TBD: write memory address (addr high byte)
-	// TBD: (optional) check status (0x28: ok)
-	// TBD: write memory address (addr low byte)
-	// TBD: (optional) check status (0x28: ok)
-	// TBD: create another Start Condition (Restart)
-	// TBD: (optional) check status (0x10: ok)
-	// TBD: write EEPROM chip I2C address (MRM: R/W bit = 1)
-	// TBD: (optional) check status (0x40: ok)
-	// TBD: loop for size-1 bytes: read data with ACK
-	// (optional) check status (0x50: ok)
-	// TBD: read data byte with NACK
-	// TBD: (optional) check status (0x58: ok)
-	// TBD: create Stop Condition
+	return 0;
 }

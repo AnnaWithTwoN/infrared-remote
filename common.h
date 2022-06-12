@@ -31,6 +31,9 @@
 #include "ir.h"
 #include "menu.h"
 
+#define INFO_LOGS 1
+#define DEBUG_LOGS 0
+
 // Display part
 #define POS_CURSOR_INIT 0
 #define POS_CURSOR_REC 1
@@ -128,7 +131,7 @@ void print_command(uint16_t* ir);
 
 int8_t str_equal(char* str1, char* str2);
 
-void clear_array(uint16_t* arr, uint8_t length);
+void clear_array(uint16_t* arr, uint16_t length);
 
 
 #endif /* _COMMON_H_ */
