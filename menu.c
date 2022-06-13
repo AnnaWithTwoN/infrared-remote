@@ -3,7 +3,7 @@
  * 
  * This module is responsible for the infrared record / replay
  * 
- * TBD: extend this file header with infos & name
+ * Author: Léo Dubouloz
  */
 
 #include "common.h"
@@ -26,10 +26,7 @@ void ui_init()
 	
 	lcdSpiInit();
 	lcdInit();
-	//lcdWriteChar('B');
-	//TBD: call the init function of dogm_lcd
 	lcdOnOff(LCD_ON);
-	//TBD: display welcome message.
 }
 
 /** @brief Main UI/menu/LCD function
@@ -45,7 +42,6 @@ void ui_init()
  * @param ir_name This string is set here to a command name (for store)
  * @return Selected command
  * 
- * TBD: clarify the command return by using macros
  */
 int8_t ui_get_selection() // allow the link between the display part and the main part
 {

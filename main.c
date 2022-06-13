@@ -30,7 +30,6 @@
 int8_t current_index = 0; // currently selected index
 uint8_t ret_uint = 0;     // general return value variable, type uint8
 
-// TBD: add additional global variables if necessary.
 uint8_t menu = 0;
 int8_t cursor = 1;
 uint8_t line = 1;
@@ -38,7 +37,7 @@ uint8_t line = 1;
 int main(void) {
   // call all setup methods
   uart_init(115200);
-  eeprom_init(); // TODO: implement error code handling here!
+  eeprom_init();
   ui_init();
   sei();
 
@@ -68,31 +67,12 @@ int main(void) {
         break;
       }
 
-
-      // uint16_t sum = 0;
-      // char debug_string[50];
-      // for (uint8_t i = 0; i < MAX_IR_EDGES; i++) {
-        
-      //   sprintf(debug_string,"The %d. timestamp is %d\r\n",i,ir_timings[i]);
-      //   uart_sendstring(debug_string);
-      //   sum += *(ir_timings + i);
-      // }
-      // sprintf(debug_string, "The total command time is %d ticks.\r\n", sum);
-      // uart_sendstring(debug_string);
-
-      // TBD: implement error handling here!
-
-      // if ir_record_command was successful (returnvalue == 0)
-      // we can store the command now
       ret_uint = eeprom_store_command(-1, ir_name, ir_timings);
-
-      // TBD: implement error handling here!
 
       break;
     case COMMAND_REPLAY:
       // get the user selection of a command in current_index
-      current_index =
-          -1; // initialize to -1 to start searching from the beginning
+      current_index = -1; // initialize to -1 to start searching from the beginning
       if (load_name(&current_index) != 0) {
         // return to the main menu was requested
         break;
@@ -100,35 +80,18 @@ int main(void) {
       clear_array(ir_timings, MAX_IR_EDGES);
       
       ret_uint = eeprom_load_command(current_index, ir_timings);
-
-      // TBD: implement error handling here!
-
-      //if the load was successful, we have everything to replay the command.
-      // sum = 0;
-      // for (uint8_t i = 0; i < MAX_IR_EDGES; i++) {
-      //   sprintf(debug_string,"The %d. timestamp is %d\r\n",i,ir_timings[i]);
-      //   uart_sendstring(debug_string);
-      //   sum += *(ir_timings + i);
-      // }
-      // sprintf(debug_string, "The total command time is %d ticks.\r\n", sum);
-      // uart_sendstring(debug_string);
       ret_uint = ir_play_command(ir_timings);
-
-      // TBD: implement error handling here!
 
       break;
     case COMMAND_DELETE: // delete
       // get the user selection of a command in current_index
-      current_index =
-          -1; // initialize to -1 to start searching from the beginning
+      current_index = -1; // initialize to -1 to start searching from the beginning
       if (load_name(&current_index) != 0) {
         // return to the main menu was requested
         break;
       }
 
       ret_uint = eeprom_delete_command(current_index);
-
-      // TBD: implement error handling here!
 
       break;
     default:

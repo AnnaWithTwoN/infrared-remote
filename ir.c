@@ -3,7 +3,7 @@
  * 
  * This module is responsible for the infrared record / replay
  * 
- * TBD: extend this file header with infos & name
+ * Author: Gergely Bereczki
  */
 
 #include "common.h"	
@@ -103,7 +103,6 @@ uint8_t ir_record_command(uint16_t * ir)
  * @param ir Pointer to array, where the timings are.
  * @return 0 on success, error code otherwise
  * 
- * TBD: implement error codes
  */
 uint8_t ir_play_command(uint16_t * ir)
 {

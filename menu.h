@@ -3,7 +3,7 @@
  * 
  * This module is responsible for the infrared record / replay
  * 
- * TBD: extend this file header with infos & name
+ * Author: Léo Dubouloz
  */
 
 #ifndef _MENU_H_
@@ -31,7 +31,6 @@ void ui_init();
  * @param ir_name This string is set here to a command name (for store)
  * @return Selected command
  * 
- * TBD: clearify the command return by using macros
  */
 int8_t ui_get_selection();
 
