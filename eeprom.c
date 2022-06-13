@@ -365,12 +365,8 @@ uint8_t eeprom_load_command(int8_t index, uint16_t * ir)
 	eeprom_read_bytes(start_address_command, buffer, IR_EDGES_ARR_LENGTH);
 	
 	for(uint8_t i = 0; i < MAX_IR_EDGES; i++){
-		if(!buffer[i*2]) break;
-		else
-		{
-			ir[i] = buffer[i * 2];
-			ir[i] |= (buffer[i * 2 + 1] << 8);
-		}
+		ir[i] = buffer[i * 2];
+		ir[i] |= (buffer[i * 2 + 1] << 8);
 		
 		#if DEBUG_LOGS
 		uart_sendstring(i16tos(buffer[i * 2]));
